@@ -116,6 +116,7 @@ class ListUserNote extends Controller
         $query = $req->search;
         $findResult = $user->where('name', 'LIKE', '%'.$query.'%')->get();
         
+        // Search query in elasticsearch
         $elastic = ES::index('user_index')
                         ->type('list')
                         ->body([
@@ -126,12 +127,12 @@ class ListUserNote extends Controller
                             ]
                         ])
                         ->get();
-
+        
+        // Show response in JSON format
         return response()->json([
-            'message' => 'Success!',
+            'message' => 'Data Found!!',
             'data' => $findResult,
             'elastic' => $elastic,
-            // 'elastic_find' => $elastic,
         ]);
     }
 }
