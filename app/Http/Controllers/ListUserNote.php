@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\SampleUser as userModel;
+use App\SampleUser as UserModel;
 use Basemkhirat\Elasticsearch\Facades\ES;
 
 class ListUserNote extends Controller
@@ -11,7 +11,7 @@ class ListUserNote extends Controller
     protected $model;
 
     // Controller for userModel
-    public function __construct(userModel $model)
+    public function __construct(UserModel $model)
     {
         $this->model = $model;
         $this->esSearch = ES::index('user_index')->type('list')->get();
@@ -31,7 +31,7 @@ class ListUserNote extends Controller
     }
 
 
-    public function store(Request $req, userModel $user)
+    public function store(Request $req, UserModel $user)
     {   
         // inser data
         $user->name = $req->name; // user.name = input.name
@@ -109,17 +109,28 @@ class ListUserNote extends Controller
         ]);
     }
 
-    public function searchByQuery(Request $req, userModel $user)
+    public function searchByQuery(Request $req, UserModel $user)
     {
         // Search by query
         // Search model 
         $query = $req->search;
         $findResult = $user->where('name', 'LIKE', '%'.$query.'%')->get();
-        // $elastic = ES::index('user_index')->type('list')->id($id)->get();
+        
+        $elastic = ES::index('user_index')
+                        ->type('list')
+                        ->body([
+                            "query" => [
+                                "regexp" => [
+                                    "name" => ".*{$query}.*"
+                                ]
+                            ]
+                        ])
+                        ->get();
 
         return response()->json([
             'message' => 'Success!',
             'data' => $findResult,
+            'elastic' => $elastic,
             // 'elastic_find' => $elastic,
         ]);
     }
